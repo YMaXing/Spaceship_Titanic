@@ -1,0 +1,6 @@
+[core]
+    remote = gdrive
+['remote "gd"']
+    url = ../gd:/1HjMMm0yMhh6rWnoHF0DnGQxx6m8B6ydK
+['remote "gdrive"']
+    url = ../gdrive:/1nfVHiEwYDpetvlhJvE05lb3fwgL9Ieth
