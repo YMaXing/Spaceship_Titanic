@@ -18,9 +18,9 @@ x-app-template: &app-template
       USER_NAME: "${USER_NAME:-yxing}"
       USER_ID: "${USER_ID:-1000}"
   env_file:
-    - .envs/.postgres
     - .envs/.mlflow-common
     - .envs/.mlflow-dev
+    - .envs/.postgres
   volumes:
     - ./:/app/
     - mlflow-artifact-store:/mlflow-artifact-store
