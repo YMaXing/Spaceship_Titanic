@@ -1,2 +1,1 @@
-# cybulde-project-template
-A simple template for Cybulde project
+Spaceship Titanic is my first ever data science project on Kaggle.
