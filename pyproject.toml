@@ -29,9 +29,25 @@ distfit = "~=1.7.3"
 eli5 = "~=0.13.0"
 dvc = {version = "~=3.49.0", extras=["gdrive", "gs"]}
 mlflow = "~=2.11.3"
+psycopg2-binary = "~=2.9"
+nltk = "~=3.8.1"
+transformers = {version = "~=4.39.3", extras=["tensorflow"]}
+tokenizers = "~=0.15.2"
+fsspec = {version = "~=2024.3.1", extras=["gcs"]}
+gcsfs = "~=2024.3.1"
+google-cloud-secret-manager = "~=2.19.0"
+google-cloud-compute = "~=1.18"
+fastparquet = "~=2024.2.0"
+dask = {version = "~=2024.4.1", extras=["complete"]}
+dask-cloudprovider = {"version" = "~=2022.10.0", "extras" = ["gcp"]}
+dask-ml = "~=2024.4.4"
+distributed = "~=2024.4.1"
+symspellpy = "~=6.7.7"
+jupyterlab = "~=4.1.5"
+tqdm = "~=4.66.2"
+
 
 [tool.poetry.group.dev.dependencies]
-jupyterlab = "~=4.1.5"
 pytest = "~=8.1.1"
 black = "~=24.3.0"
 isort = "~=5.13.2"

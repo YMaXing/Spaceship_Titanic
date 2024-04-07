@@ -24,6 +24,7 @@ x-app-template: &app-template
   volumes:
     - ./:/app/
     - mlflow-artifact-store:/mlflow-artifact-store
+    - ~/.config/gcloud/:/home/${USER_NAME:-kyuksel}/.config/gcloud
   ipc: host
   init: true
 
@@ -46,7 +47,7 @@ services:
     container_name: spaceship-titanic-dev-container
     ports:
       - ${LOCAL_DEV_MLFLOW_SERVER_PORT}:${LOCAL_DEV_MLFLOW_SERVER_PORT}
-      - 8080:8080
+      - 8888:8888
     deploy:
       resources:
         reservations:
@@ -56,6 +57,18 @@ services:
               capabilities: [gpu]
     profiles:
       - dev
+  
+  app-prod:
+    <<: *app-template
+    container_name: spaceship-titanic-prod-container
+    env_file:
+      - .envs/.mlflow-common
+      - .envs/.mlflow-prod
+    ports:
+      - ${PROD_MLFLOW_SERVER_PORT}:${PROD_MLFLOW_SERVER_PORT}
+    profiles:
+      - prod
+
 
   app-ci:
     <<: *app-template
