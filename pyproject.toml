@@ -43,10 +43,11 @@ dask-cloudprovider = {"version" = "~=2022.10.0", "extras" = ["gcp"]}
 dask-ml = "~=2024.4.4"
 distributed = "~=2024.4.1"
 symspellpy = "~=6.7.7"
+jupyterlab = "~=4.1.5"
+tqdm = "~=4.66.2"
 
 
 [tool.poetry.group.dev.dependencies]
-jupyterlab = "~=4.1.5"
 pytest = "~=8.1.1"
 black = "~=24.3.0"
 isort = "~=5.13.2"
