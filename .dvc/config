@@ -1,6 +1,6 @@
 [core]
     analytics = false
     autostage = true
-    remote = gdrive
-['remote "gdrive"']
-    url = gdrive://1QsgGkmHabRvF3HRBaL41XnLEtlso0j5A
+    remote = gcs-storage
+['remote "gcs-storage"']
+    url = gs://spaceship_titanic/raw_data

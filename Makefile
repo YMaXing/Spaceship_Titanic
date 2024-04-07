@@ -18,6 +18,9 @@ else
 	DOCKER_COMPOSE_COMMAND = docker-compose
 endif
 
+PROD_SERVICE_NAME = app-prod
+PROD_CONTAINER_NAME = spaceship-titanic-prod-container
+
 ifeq (, $(shell which nvidia-smi))
 	PROFILE = ci
 	SERVICE_NAME = app-ci
@@ -32,6 +35,9 @@ DIRS_TO_VALIDATE = SpaceshipTitanic
 DOCKER_COMPOSE_RUN = $(DOCKER_COMPOSE_COMMAND) run --rm $(SERVICE_NAME)
 DOCKER_COMPOSE_EXEC = $(DOCKER_COMPOSE_COMMAND) exec $(SERVICE_NAME)
 
+DOCKER_COMPOSE_RUN_PROD = $(DOCKER_COMPOSE_COMMAND) run --rm $(PROD_SERVICE_NAME)
+DOCKER_COMPOSE_EXEC_PROD = $(DOCKER_COMPOSE_COMMAND) exec $(PROD_SERVICE_NAME)
+
 export
 
 # Returns true if the stem is a non-empty environment variable, or else raises an error.
@@ -40,7 +46,11 @@ guard-%:
 
 ## Call version_data
 version-data: up
-	$(DOCKER_COMPOSE_EXEC) python ./SpaceshipTitanic/version_data.py
+	$(DOCKER_COMPOSE_EXEC) python ./SpaceshipTitanic/data/version_data.py
+
+## Process the data
+process-data: up
+	$(DOCKER_COMPOSE_EXEC) python ./SpaceshipTitanic/data/data_processing.py
 
 ## Starts jupyter lab
 notebook: up
