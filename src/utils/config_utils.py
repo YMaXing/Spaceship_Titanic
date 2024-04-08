@@ -7,7 +7,7 @@ import hydra
 from hydra.types import TaskFunction
 from omegaconf import DictConfig, OmegaConf
 
-from SpaceshipTitanic.config_schemas import config_schema
+from src.config_schemas import config_schema
 
 
 def get_config(config_path: str, config_name: str) -> TaskFunction:
@@ -30,6 +30,6 @@ def setup_config() -> None:
 
 
 def setup_logger() -> None:
-    with open("./SpaceshipTitanic/configs/hydra/job_logging/custom.yaml", "r") as stream:
+    with open("./src/configs/hydra/job_logging/custom.yaml", "r") as stream:
         config = yaml.load(stream, Loader=yaml.FullLoader)
     logging.config.dictConfig(config)
