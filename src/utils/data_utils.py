@@ -27,6 +27,7 @@ def initialize_dvc_storage(dvc_remote_name: str, dvc_remote_url: str) -> None:
     if not run_shell_command("dvc remote list"):
         DATA_UTILS_LOGGER.info("Initializing DVC storage...")
         run_shell_command(f"dvc remote add -d {dvc_remote_name} {dvc_remote_url}")
+        run_shell_command("git config --global --add safe.directory /app")
         run_shell_command("git add .dvc/config")
         run_shell_command("git commit -nm 'Initialized dvc remote storage at {dvc_remote_url}'")
     else:
@@ -39,6 +40,7 @@ def commit_to_dvc(dvc_raw_data_folder: str, dvc_remote_name: str) -> None:
         current_version = "0"
     next_version = f"v{int(current_version) + 1}"
     run_shell_command(f"dvc add {dvc_raw_data_folder}")
+    run_shell_command("git config --global --add safe.directory /app")
     run_shell_command("git add .")
     run_shell_command(f"git commit -nm 'Updated data version from {current_version} to {next_version}'")
     run_shell_command(f"git tag -a {next_version} -m 'Data version {next_version}'")
