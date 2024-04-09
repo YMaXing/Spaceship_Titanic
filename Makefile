@@ -50,7 +50,7 @@ version-data: up
 
 ## Process the data
 process-data: up
-	$(DOCKER_COMPOSE_EXEC) python ./src/data/data_processing.py
+	$(DOCKER_COMPOSE_EXEC) python ./sdata/data_processing.py
 
 ## Starts jupyter lab
 notebook: up
