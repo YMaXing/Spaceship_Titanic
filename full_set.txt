@@ -1,3 +1,4 @@
+
 [tool.poetry]
 name = "Spaceship_Titanic"
 version = "0.1.0"
@@ -7,6 +8,7 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = ">=3.11, <3.12"
+setuptools = "~=69.2.0"
 hydra-core = "~=1.3.2"
 pydantic = "~=2.6.4"
 dvc = {version = "~=3.49.0", extras=["gdrive", "gs"]}
@@ -88,14 +90,15 @@ jupyterlab-sql = "~=0.3.3"
 nbdime = "~=4.0.1"
 jupyter_bokeh = "~=4.0.1"
 jupyter-lsp = "~=2.2.5"
-qgrid = "~=1.3.1"
+
+
+
 
 # NLP
 transformers = {version = "~=4.39.3", extras=["tensorflow"]}
 tokenizers = "~=0.15.2"
 psycopg2-binary = "~=2.9"
 nltk = "~=3.8.1"
-
 
 [tool.poetry.group.dev.dependencies]
 pytest = "~=8.1.1"
