@@ -1,5 +1,5 @@
-import logging
 import socket
+import logging
 import subprocess
 
 
