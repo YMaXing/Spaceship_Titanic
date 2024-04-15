@@ -1,0 +1,7 @@
+data:
+  dvc_remote_name: gcs-storage
+  dvc_remote_url: gs://spaceship_titanic/raw_data
+  dvc_raw_data_folder: data/raw
+  gcp_project_id: '555402469041'
+  gcp_secret_id: SpaceshipTitanic_token
+  gcp_version_id: v1

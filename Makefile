@@ -46,11 +46,11 @@ guard-%:
 
 ## Call version_data
 version-data: up
-	$(DOCKER_COMPOSE_EXEC) python ./src/data/version_data.py
+	$(DOCKER_COMPOSE_EXEC) python src/data/version_data.py
 
 ## Process the data
 process-data: up
-	$(DOCKER_COMPOSE_EXEC) python ./sdata/data_processing.py
+	$(DOCKER_COMPOSE_EXEC) python src/data/data_processing.py
 
 ## Starts jupyter lab
 notebook: up

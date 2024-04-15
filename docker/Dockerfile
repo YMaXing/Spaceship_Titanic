@@ -10,8 +10,7 @@ ENV \
   TZ=Europe/Amsterdam \
   PATH="/usr/local/gcloud/google-cloud-sdk/bin:${HOME}/.local/bin:${VIRTUAL_ENV}/bin:${PATH}" \
   PYTHONPATH="/app:${PYTHONPATH}" \
-  BUILD_POETRY_LOCK="${HOME}/poetry.lock.build"\
-  SKLEARN_ALLOW_DEPRECATED_SKLEARN_PACKAGE_INSTALL=True
+  BUILD_POETRY_LOCK="${HOME}/poetry.lock.build"
 
 RUN apt-get -qq update --fix-missing \
     && apt-get -qq -y install vim gcc curl git build-essential libb64-dev software-properties-common \
