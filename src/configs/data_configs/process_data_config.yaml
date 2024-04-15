@@ -1,5 +1,0 @@
-defaults:
-  - data/process_data_schema
-  - _self_
-
-

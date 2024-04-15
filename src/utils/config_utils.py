@@ -7,7 +7,7 @@ import hydra
 from hydra.types import TaskFunction
 from omegaconf import DictConfig, OmegaConf
 
-from src.config_schemas.data_schemas import process_data_schema
+from src.config_schemas.data import data_processing_config_schema
 
 
 def get_config(config_path: str, config_name: str) -> TaskFunction:
@@ -26,7 +26,7 @@ def get_config(config_path: str, config_name: str) -> TaskFunction:
 
 
 def setup_config() -> None:
-    process_data_schema.setup_config()
+    data_processing_config_schema.setup_config()
 
 
 def setup_logger() -> None:

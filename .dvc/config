@@ -3,4 +3,4 @@
     autostage = true
     remote = gcs-storage
 ['remote "gcs-storage"']
-    url = gs://spaceship_titanic/raw_data
+    url = gs://spaceship_titanic/data/raw

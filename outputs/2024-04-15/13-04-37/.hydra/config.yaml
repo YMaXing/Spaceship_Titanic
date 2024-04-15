@@ -1,0 +1,6 @@
+github_user_name: YMaXing
+version: v1
+dvc_remote_repo: github.com/YMaXing/Spaceship_Titanic.git
+dvc_data_folder: /raw_data
+gcp_project_id: '555402469041'
+gcp_secret_id: SpaceshipTitanic_token
