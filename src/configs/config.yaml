@@ -9,3 +9,5 @@ hydra:
   output_subdir: null
   run:
     dir: .
+  searchpath:
+    - ./src/config_schemas/
