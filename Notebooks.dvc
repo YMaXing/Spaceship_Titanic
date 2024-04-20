@@ -1,0 +1,6 @@
+outs:
+- md5: 60eae894bda991ea711b368365002842.dir
+  size: 180639583
+  nfiles: 38
+  hash: md5
+  path: Notebooks
