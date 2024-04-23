@@ -36,7 +36,7 @@ class DoubleValidationEncoderNumerical(BaseEstimator, TransformerMixin):
 
         self.storage = None
 
-    def fit(self, X: pd.DataFrame, y: np.array) -> pd.DataFrame:
+    def fit_transform(self, X: pd.DataFrame, y: np.array) -> pd.DataFrame:
         self.num_cols = [col for col in X.columns if col not in self.cols]
         self.storage = []
 
@@ -51,7 +51,7 @@ class DoubleValidationEncoderNumerical(BaseEstimator, TransformerMixin):
                     self.encoders_dict[encoder_name] = [encoder]
                 else:
                     self.encoders_dict[encoder_name].append(encoder)
-        return self
+        return X
 
     def transform(self, X: pd.DataFrame) -> pd.DataFrame:
         for encoder_name in self.encoders_names_tuple:

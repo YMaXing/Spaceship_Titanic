@@ -57,7 +57,7 @@ class iter_cv_catboost_imputer(imputer):
         self.label_encoders = None
         self.errors = None
 
-    def fit(self, train: pd.DataFrame):
+    def fit_transform(self, train: pd.DataFrame):
         logging.info("Starting the fitting process.")
         # Get all the categorical and numerical features respectively in the training set
         self.cat_features = [
@@ -118,8 +118,6 @@ class iter_cv_catboost_imputer(imputer):
                 estimators_curr = []
                 # Start cross-validation training
                 for train_index, _ in cv.split(X_curr, Y_curr):
-
-                    logging.info(f"Starting new cv fold for feature: {label_curr}")
                     # Define the X and Y for both training folds (the test fold is useless here)
                     X_train, Y_train = X_curr.iloc[train_index], Y_curr.iloc[train_index]
                     # Define Catboost estimator based on the type of the current feature to be imputed)
@@ -131,7 +129,6 @@ class iter_cv_catboost_imputer(imputer):
                     # Fit the Catboost estimator and append it to the list "estimators_curr"
                     estimator_curr.fit(X_train, Y_train, cat_features=cat_features_curr, verbose=False)
                     estimators_curr.append(estimator_curr)
-                    logging.info(f"Completed new cv fold for feature: {label_curr}")
                 # Predict the missing values of the current feature to be impute by first averaging the prediction from different folds
                 Y_pred = np.mean(
                     np.array(
@@ -175,7 +172,7 @@ class iter_cv_catboost_imputer(imputer):
         self.estimators = estimators
         self.label_encoders = label_encoders
 
-        return self
+        return train
 
     def plot_training_error(self):
         for feature, values in self.errors.items():
@@ -225,6 +222,5 @@ class iter_cv_catboost_imputer(imputer):
 
         return test
 
-    def fit_transform(self, train: pd.DataFrame) -> pd.DataFrame:
-        self.fit(train)
-        return train
+    def fit(self) -> None:
+        return self

@@ -30,7 +30,12 @@ def imputation(config: imputation_Config) -> iter_cv_catboost_imputer:
     df_train = Catboost_imputer.fit_transform(df_train)
     df_test = Catboost_imputer.transform(df_test)
 
+    df_train[expenses] = df_train[expenses].clip(lower=0)
+    df_test[expenses] = df_test[expenses].clip(lower=0)
+
     save_data(df_train, df_test, config.local_save_dir)
+
+    Catboost_imputer.plot_training_error()
 
 
 def EDA_imputer(df: pd.DataFrame, expenses: list) -> pd.DataFrame:

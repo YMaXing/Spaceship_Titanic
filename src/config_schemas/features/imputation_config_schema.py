@@ -11,6 +11,7 @@ class imputation_Config:
     label = "Transported"
     max_iter = 5
 
+
 def setup_config() -> None:
     cs = ConfigStore.instance()
     cs.store(name="imputation_config_schema", node=imputation_Config)
