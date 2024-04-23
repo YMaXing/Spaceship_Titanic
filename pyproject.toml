@@ -96,6 +96,7 @@ transformers = {version = "~=4.39.3", extras=["tensorflow"]}
 tokenizers = "~=0.15.2"
 psycopg2-binary = "~=2.9"
 nltk = "~=3.8.1"
+category-encoders = "^2.6.3"
 
 
 [tool.poetry.group.dev.dependencies]

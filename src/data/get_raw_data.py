@@ -1,5 +1,5 @@
 from src.utils.config_utils import get_config
-from src.config_schemas.data.data_processing_config_schema import data_processing_Config
+from src.config_schemas.data.get_raw_data_config_schema import data_processing_Config
 from src.utils.data_utils import get_raw_data_with_version
 from src.utils.gcp_utils import access_secret_version
 
