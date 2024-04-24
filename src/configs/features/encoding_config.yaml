@@ -1,0 +1,4 @@
+defaults:
+  - encoding_config_schema
+  - _self_
+

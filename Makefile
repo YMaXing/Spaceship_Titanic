@@ -48,8 +48,16 @@ guard-%:
 version-data: up
 	$(DOCKER_COMPOSE_EXEC) python src/data/version_data.py
 
+## Impute the data
+impute: up
+	$(DOCKER_COMPOSE_EXEC) python src/features/imputation/imputation.py
+
+## Engineer new features
+engineer: up
+	$(DOCKER_COMPOSE_EXEC) python src/features/feature_engineering.py
+
 ## Process the data
-process-data: up
+process-data: impute
 	$(DOCKER_COMPOSE_EXEC) python src/data/data_processing.py
 
 ## Starts jupyter lab
