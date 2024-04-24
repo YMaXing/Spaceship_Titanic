@@ -56,9 +56,13 @@ impute: up
 outlier: impute
 	$(DOCKER_COMPOSE_EXEC) python src/features/outlier_detection.py
 
-## Engineer new features
+## Engineer new features and delete some old features
 engineer: outlier
 	$(DOCKER_COMPOSE_EXEC) python src/features/feature_engineering.py
+
+## Engineer new features 
+encode: engineer
+	$(DOCKER_COMPOSE_EXEC) python src/features/encoding/encoding.py encodername="WOEEncoder"
 
 ## Process the data
 process-data: impute

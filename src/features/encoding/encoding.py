@@ -10,7 +10,8 @@ from src.features.encoding.encoding_model import Encoder
 @get_config(config_path="../configs/features", config_name="encoding_config")
 def encoding(config: encoding_Config) -> None:
     """
-    Supported encoder names: "WOEEncoder", "CatBoostEncoder", "MEstimateEncoder"
+    Supported encoder names: "WOEEncoder", "CatBoostEncoder", "MEstimateEncoder",
+    you will need to type the name of the encoder you want in the command line : encoder_name = ?
     """
     df_train_X, df_train_Y, df_test = read_data(config.local_data_dir, config.label)
     logging.info("Data read successfully.")
