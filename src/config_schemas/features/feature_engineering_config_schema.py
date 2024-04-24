@@ -5,7 +5,7 @@ from omegaconf import MISSING
 
 @dataclass
 class feature_engineering_Config:
-    local_data_dir = "data/imputed"
+    local_data_dir = "data/outlier_removed"
     local_save_dir = "data/engineered"
 
 

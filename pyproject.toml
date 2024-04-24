@@ -97,6 +97,7 @@ tokenizers = "~=0.15.2"
 psycopg2-binary = "~=2.9"
 nltk = "~=3.8.1"
 category-encoders = "^2.6.3"
+pyod = "^1.1.3"
 
 
 [tool.poetry.group.dev.dependencies]

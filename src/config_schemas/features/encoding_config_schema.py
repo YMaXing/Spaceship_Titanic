@@ -5,7 +5,7 @@ from omegaconf import MISSING
 
 @dataclass
 class encoding_Config:
-    local_data_dir = "data/imputed"
+    local_data_dir = "data/engineered"
     local_save_dir = "data/encoded"
     encoder_name: str = MISSING
     cat_validation: str = "Double"
