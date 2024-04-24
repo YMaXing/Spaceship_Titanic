@@ -29,16 +29,18 @@ class DoubleValidationEncoderNumerical(BaseEstimator, TransformerMixin):
         self.encoder_name = encoder_name
 
         self.n_folds = 5
-        self.model_validation = StratifiedKFold(n_splits=self.n_folds, random_state=42)
-        self.encoders_dict = []
+        self.model_validation = StratifiedKFold(n_splits=self.n_folds)
+        self.encoders_list = []
 
     def fit(self, X: pd.DataFrame, y: np.array):
-        self.cat_cols = [col for col in X.columns if X[col].dtype == "O"]
+        self.cat_cols = [
+            col for col in X.columns if not pd.api.types.is_numeric_dtype(X[col]) or X[col].dtype == "bool"
+        ]
         for n_fold, (train_idx, val_idx) in enumerate(self.model_validation.split(X, y)):
-            encoder = get_single_encoder(self.encoder_name, self.cols)
-            X_train, y_train = X.loc[train_idx], y[train_idx]
+            encoder = get_single_encoder(self.encoder_name, self.cat_cols)
+            X_train, y_train = X.iloc[train_idx], y[train_idx]
             encoder.fit(X_train, y_train)
-            self.encoders_dict[self.encoder_name].append(encoder)
+            self.encoders_list.append(encoder)
         return self
 
     def transform(self, X: pd.DataFrame) -> pd.DataFrame:
@@ -77,7 +79,9 @@ class MultipleEncoder(BaseEstimator, TransformerMixin):
         self.encoder = None
 
     def fit(self, X: pd.DataFrame, y: np.array) -> None:
-        self.cat_cols = [col for col in X.columns if X[col].dtype == "O"]
+        self.cat_cols = [
+            col for col in X.columns if not pd.api.types.is_numeric_dtype(X[col]) or X[col].dtype == "bool"
+        ]
         encoder = get_single_encoder(encoder_name=self.encoder_name, cat_cols=self.cat_cols)
         encoder.fit(X, y)
         self.encoder = encoder
@@ -120,7 +124,7 @@ def get_single_encoder(encoder_name: str, cat_cols: list):
 def read_data(local_data_dir: str, label: str) -> pd.DataFrame:
     df_train = pd.read_csv(local_data_dir + "/train.csv")
     X = df_train.drop(columns=label)
-    Y = df_train[label]
+    Y = np.array(df_train[label])
     df_test = pd.read_csv(local_data_dir + "/test.csv")
     return X, Y, df_test
 

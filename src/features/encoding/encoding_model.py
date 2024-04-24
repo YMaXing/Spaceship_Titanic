@@ -21,7 +21,7 @@ class Encoder(BaseEstimator, TransformerMixin):
         # process cat cols
         X_val_list = []
         for n_fold, (train_idx, val_idx) in enumerate(self.model_validation.split(X, y)):
-            X_train, X_val = X.loc[train_idx], X.loc[val_idx]
+            X_train, X_val = X.iloc[train_idx], X.iloc[val_idx]
             y_train = y[train_idx]
             print(f"shapes before encoder: {X_train.shape}, {X_val.shape}")
 
@@ -31,7 +31,7 @@ class Encoder(BaseEstimator, TransformerMixin):
                 X_val = encoder.transform(X_val)
             if self.cat_validation == "Double":
                 encoder = DoubleValidationEncoderNumerical(encoder_name=self.encoder_name)
-                X_train = encoder(X_train, y_train)
+                X_train = encoder.fit(X_train, y_train)
                 X_val = encoder.transform(X_val)
 
             X_val_list.append(X_val)
@@ -40,11 +40,11 @@ class Encoder(BaseEstimator, TransformerMixin):
         X = pd.concat(X_val_list, axis=0).sort_index()
         return X
 
-    def predict(self, X: pd.DataFrame) -> np.array:
+    def transform(self, X: pd.DataFrame) -> np.array:
         if not self.encoders_list:
             raise RuntimeError("The encoder has not been fitted yet.")
         # Initialize an empty DataFrame to accumulate weighted averages
-        X_encoded_sum = pd.DataFrame(index=X.index, columns=self.cat_cols).fillna(0.0)
+        X_encoded_sum = pd.DataFrame(index=X.index, columns=self.encoders_list[0].cat_cols).fillna(0.0)
 
         # Apply each fold's encoder and update the cumulative average
         fold_count = 0
