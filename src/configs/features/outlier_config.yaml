@@ -1,0 +1,5 @@
+defaults:
+  - outlier_config_schema
+  - _self_
+
+

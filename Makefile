@@ -50,7 +50,11 @@ version-data: up
 
 ## Impute the data
 impute: up
-	$(DOCKER_COMPOSE_EXEC) python -i src/features/imputation/imputation.py
+	$(DOCKER_COMPOSE_EXEC) python src/features/imputation/imputation.py
+
+## Engineer new features
+engineer: up
+	$(DOCKER_COMPOSE_EXEC) python src/features/feature_engineering.py
 
 ## Process the data
 process-data: impute
