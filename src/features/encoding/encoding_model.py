@@ -1,25 +1,20 @@
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import StratifiedKFold
-from scipy.stats import rankdata
-
-from src.utils.encoding_utils import MultipleEncoder, DoubleValidationEncoderNumerical
 from sklearn.base import BaseEstimator, TransformerMixin
+from src.utils.encoding_utils import MultipleEncoder, DoubleValidationEncoderNumerical
 
 
-class Model(BaseEstimator, TransformerMixin):
+class Encoder(BaseEstimator, TransformerMixin):
     def __init__(
         self,
-        cat_validation="Double",
-        encoders_name=None,
-        cat_cols=None,
+        cat_validation=None,
+        encoder_name=None,
         model_validation=StratifiedKFold(n_splits=5, shuffle=True, random_state=42),
     ):
         self.cat_validation = cat_validation
-        self.encoders_name = encoders_name
-        self.cat_cols = cat_cols
+        self.encoder_name = encoder_name
         self.model_validation = model_validation
-
         self.encoders_list = []
 
     def fit_transform(self, X: pd.DataFrame, y: np.array) -> None:
@@ -31,14 +26,14 @@ class Model(BaseEstimator, TransformerMixin):
             print(f"shapes before encoder: {X_train.shape}, {X_val.shape}")
 
             if self.cat_validation == "Single":
-                encoder = MultipleEncoder(cols=self.cat_cols, encoders_name=self.encoders_name)
-                X_train = encoder.fit_transform(X_train, y_train)
+                encoder = MultipleEncoder(encoder_name=self.encoder_name)
+                X_train = encoder.fit(X_train, y_train)
                 X_val = encoder.transform(X_val)
             if self.cat_validation == "Double":
-                encoder = DoubleValidationEncoderNumerical(cols=self.cat_cols, encoders_name=self.encoders_name)
-                X_train = encoder.fit_transform(X_train, y_train)
+                encoder = DoubleValidationEncoderNumerical(encoder_name=self.encoder_name)
+                X_train = encoder(X_train, y_train)
                 X_val = encoder.transform(X_val)
-                pass
+
             X_val_list.append(X_val)
             self.encoders_list.append(encoder)
 
@@ -46,15 +41,19 @@ class Model(BaseEstimator, TransformerMixin):
         return X
 
     def predict(self, X: pd.DataFrame) -> np.array:
-        y_hat = np.zeros(X.shape[0])
-        for encoder, model in zip(self.encoders_list, self.models_list):
-            X_test = X.copy()
-            X_test = encoder.transform(X_test)
+        if not self.encoders_list:
+            raise RuntimeError("The encoder has not been fitted yet.")
+        # Initialize an empty DataFrame to accumulate weighted averages
+        X_encoded_sum = pd.DataFrame(index=X.index, columns=self.cat_cols).fillna(0.0)
 
-            # check for OrdinalEncoder encoding
-            for col in [col for col in X_test.columns if "OrdinalEncoder" in col]:
-                X_test[col] = X_test[col].astype("category")
+        # Apply each fold's encoder and update the cumulative average
+        fold_count = 0
+        for encoder in self.encoders_list:
+            X_encoded = encoder.transform(X)[encoder.cat_cols]
+            # Cumulative moving average update
+            X_encoded_sum += (X_encoded - X_encoded_sum) / (fold_count + 1)
+            fold_count += 1
 
-            unranked_preds = model.predict_proba(X_test)[:, 1]
-            y_hat += rankdata(unranked_preds)
-        return y_hat, X_test.shape[1]
+        # Replace original categorical columns with their encoded values
+        X[encoder.cat_cols] = X_encoded_sum
+        return X

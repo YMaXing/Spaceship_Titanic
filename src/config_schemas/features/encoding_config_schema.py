@@ -7,10 +7,10 @@ from omegaconf import MISSING
 class encoding_Config:
     local_data_dir = "data/imputed"
     local_save_dir = "data/encoded"
-    encoder_names: str = "WOEEncoder"
-    cat_cols = ["CryoSleep", "VIP", "Cabin_deck", "Cabin_side", "HomePlanet", "Destination"]
+    encoder_names: str = MISSING
     cat_validation: str = "Double"
     label: str = "Transported"
+
 
 def setup_config() -> None:
 

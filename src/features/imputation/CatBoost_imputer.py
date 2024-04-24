@@ -79,6 +79,7 @@ class iter_cv_catboost_imputer(imputer):
         train = fill_placeholder(df=train, features=self.imp_features)
 
         # Second, we drop the label (the label for our ML task, not the label in each imputation iteration) from the dataset
+        train_label = train.loc[:, self.label]
         train = train.drop(columns=self.label)
 
         # Initialize the estimator, error and label encoder dictionaries to save the error/difference in each iteration to monitor our training process
@@ -172,7 +173,7 @@ class iter_cv_catboost_imputer(imputer):
         self.estimators = estimators
         self.label_encoders = label_encoders
 
-        return train
+        return pd.concat(train, train_label, axis=1)
 
     def plot_training_error(self):
         for feature, values in self.errors.items():

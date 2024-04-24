@@ -8,8 +8,8 @@ def read_data(local_data_dir: str) -> pd.DataFrame:
 
 
 def save_data(train: pd.DataFrame, test: pd.DataFrame, local_save_dir: str) -> None:
-    train.to_csv(local_save_dir + "/train.csv")
-    test.to_csv(local_save_dir + "/test.csv")
+    train.to_csv(local_save_dir + "/train.csv", index=False)
+    test.to_csv(local_save_dir + "/test.csv", index=False)
 
 
 def missing_index(df, features):
