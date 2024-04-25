@@ -32,10 +32,10 @@ def feature_engineering(config: feature_engineering_Config) -> None:
 
     # Remove corresponding old features
     df_train = df_train.drop(
-        columns=["Age", "ID_num", "RoomService", "ShoppingMall", "Spa", "VRDeck", "FoodCourt", "Cabin_side"]
+        columns=["Age", "ID_num", "Cabin_side"]
     )
     df_test = df_test.drop(
-        columns=["Age", "ID_num", "RoomService", "ShoppingMall", "Spa", "VRDeck", "FoodCourt", "Cabin_side"]
+        columns=["Age", "ID_num", "Cabin_side"]
     )
 
     # Save engineered datasets
