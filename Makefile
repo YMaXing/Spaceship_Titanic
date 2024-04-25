@@ -62,7 +62,7 @@ engineer: outlier
 
 ## Engineer new features 
 encode: engineer
-	$(DOCKER_COMPOSE_EXEC) python src/features/encoding/encoding.py encodername="WOEEncoder"
+	$(DOCKER_COMPOSE_EXEC) python src/features/encoding/encoding.py encoder_name="WOEEncoder"
 
 ## Process the data
 process-data: impute
