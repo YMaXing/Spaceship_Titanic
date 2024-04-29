@@ -5,6 +5,7 @@ from src.utils.encoding_utils import read_data, save_data
 from src.utils.config_utils import get_config
 from src.config_schemas.features.encoding_config_schema import encoding_Config
 from src.features.encoding.encoding_model import Encoder
+from sklearn.compose import ColumnTransformer
 
 
 @get_config(config_path="../configs/features", config_name="encoding_config")
@@ -32,6 +33,8 @@ def encoding(config: encoding_Config) -> None:
         save_dir = config.local_save_dir + "/WOE"
     elif config.encoder_name == "MEstimateEncoder":
         save_dir = config.local_save_dir + "/MEstimate"
+    elif config.encoder_name == "OneHotEncoder":
+        save_dir = config.local_save_dir + "/One-Hot"
     else:
         ValueError("Encoder not supported")
 

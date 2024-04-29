@@ -43,17 +43,16 @@ class Encoder(BaseEstimator, TransformerMixin):
     def transform(self, X: pd.DataFrame) -> np.array:
         if not self.encoders_list:
             raise RuntimeError("The encoder has not been fitted yet.")
-        # Initialize an empty DataFrame to accumulate weighted averages
-        X_encoded_sum = pd.DataFrame(index=X.index, columns=self.encoders_list[0].cat_cols).fillna(0.0)
 
         # Apply each fold's encoder and update the cumulative average
         fold_count = 0
         for encoder in self.encoders_list:
-            X_encoded = encoder.transform(X)[encoder.cat_cols]
+            X_encoded = encoder.transform(X).drop(columns=encoder.num_cols)
+            # Initialize an empty DataFrame to accumulate weighted averages
+            if fold_count == 0:
+                X_encoded_sum = pd.DataFrame(index=X.index, columns=X_encoded.columns).fillna(0.0)
             # Cumulative moving average update
             X_encoded_sum += (X_encoded - X_encoded_sum) / (fold_count + 1)
             fold_count += 1
 
-        # Replace original categorical columns with their encoded values
-        X[encoder.cat_cols] = X_encoded_sum
-        return X
+        return pd.concat([X_encoded_sum, X.drop(columns=encoder.cat_cols)], axis=1)

@@ -25,7 +25,8 @@ class DoubleValidationEncoderNumerical(BaseEstimator, TransformerMixin):
         """
         :param encoder_name: Name of encoder
         """
-        self.cat_cols = None
+        self.cat_cols = []
+        self.num_cols = []
         self.encoder_name = encoder_name
 
         self.n_folds = 5
@@ -36,6 +37,8 @@ class DoubleValidationEncoderNumerical(BaseEstimator, TransformerMixin):
         self.cat_cols = [
             col for col in X.columns if not pd.api.types.is_numeric_dtype(X[col]) or X[col].dtype == "bool"
         ]
+        self.num_cols = [col for col in X.columns if pd.api.types.is_numeric_dtype(X[col]) and X[col].dtype != "bool"]
+
         for n_fold, (train_idx, val_idx) in enumerate(self.model_validation.split(X, y)):
             encoder = get_single_encoder(self.encoder_name, self.cat_cols)
             X_train, y_train = X.iloc[train_idx], y[train_idx]
@@ -46,20 +49,19 @@ class DoubleValidationEncoderNumerical(BaseEstimator, TransformerMixin):
     def transform(self, X: pd.DataFrame) -> pd.DataFrame:
         if not self.encoders_list:
             raise RuntimeError("The encoder has not been fitted yet.")
-        # Initialize an empty DataFrame to accumulate weighted averages
-        X_encoded_sum = pd.DataFrame(index=X.index, columns=self.cat_cols).fillna(0.0)
 
         # Apply each fold's encoder and update the cumulative average
         fold_count = 0
         for encoder in self.encoders_list:
-            X_encoded = encoder.transform(X)[self.cat_cols]
+            X_encoded = encoder.transform(X).drop(columns=self.num_cols)
+            # Initialize an empty DataFrame to accumulate weighted averages
+            if fold_count == 0:
+                X_encoded_sum = pd.DataFrame(index=X.index, columns=X_encoded.columns).fillna(0.0)
             # Cumulative moving average update
             X_encoded_sum += (X_encoded - X_encoded_sum) / (fold_count + 1)
             fold_count += 1
 
-        # Replace original categorical columns with their encoded values
-        X[self.cat_cols] = X_encoded_sum
-        return X
+        return pd.concat([X_encoded_sum, X[self.num_cols]], axis=1)
 
 
 class MultipleEncoder(BaseEstimator, TransformerMixin):
@@ -115,7 +117,9 @@ def get_single_encoder(encoder_name: str, cat_cols: list):
     }
 
     encoder_class = encoder_classes.get(encoder_name)
-    if encoder_class:
+    if encoder_class is OneHotEncoder:
+        return encoder_class(cols=cat_cols, use_cat_names=True)
+    elif encoder_class:
         return encoder_class(cols=cat_cols)
     else:
         raise ValueError(f"Encoder name '{encoder_name}' is not supported.")
