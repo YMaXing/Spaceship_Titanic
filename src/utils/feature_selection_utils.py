@@ -939,3 +939,19 @@ class simulated_annealing_cv:
         results = results.dropna(axis=0, how="all")
 
         return results, metric_best, best_subset_cols
+
+
+def read_data(local_data_dir: str) -> pd.DataFrame:
+    df_train = pd.read_csv(local_data_dir + "/train.csv")
+    df_test = pd.read_csv(local_data_dir + "/test.csv")
+    return df_train, df_test
+
+
+def save_data(train: pd.DataFrame, test: pd.DataFrame, local_save_dir: str) -> None:
+    train.to_csv(local_save_dir + "/train.csv", index=False)
+    test.to_csv(local_save_dir + "/test.csv", index=False)
+
+
+def select_feature(df: pd.DataFrame, features: list[str]) -> pd.DataFrame:
+    df = df[features]
+    return df

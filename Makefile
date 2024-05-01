@@ -64,6 +64,10 @@ engineer: outlier
 encode: engineer
 	$(DOCKER_COMPOSE_EXEC) python src/features/encoding/encoding.py encoder_name="WOEEncoder"
 
+## Feature selection
+select_feature: encode
+	$(DOCKER_COMPOSE_EXEC) python src/features/feature_selection.py
+
 ## Process the data
 process-data: impute
 	$(DOCKER_COMPOSE_EXEC) python src/data/data_processing.py
