@@ -7825,6 +7825,25 @@ test = ["pytest (>=7)"]
 zstd = ["zstandard"]
 
 [[package]]
+name = "pyod"
+version = "1.1.3"
+description = "A Comprehensive and Scalable Python Library for Outlier Detection (Anomaly Detection)"
+optional = false
+python-versions = "*"
+files = [
+    {file = "pyod-1.1.3.tar.gz", hash = "sha256:ae39808c8da04ce47eee3757ef641feb67e610bddb134b3362fd6f5cb2c6c7cd"},
+]
+
+[package.dependencies]
+joblib = "*"
+matplotlib = "*"
+numba = ">=0.51"
+numpy = ">=1.19"
+scikit_learn = ">=0.22.0"
+scipy = ">=1.5.1"
+six = "*"
+
+[[package]]
 name = "pyopenssl"
 version = "24.1.0"
 description = "Python wrapper module around the OpenSSL library"
@@ -11006,4 +11025,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11, <3.12"
-content-hash = "381f7b5acf16255f28459c4d348486137c287a6c7bccc96d8f0a998a30d674a0"
+content-hash = "22a60f5903b24f7d41323f32d38d8fcb9af12144bd0a0d9b02ca23159fb5eba9"

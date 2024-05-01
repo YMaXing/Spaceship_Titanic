@@ -1,0 +1,41 @@
+label: Transported
+unencoded_features:
+- CryoSleep
+- Destination
+- VIP
+- FoodCourt
+- ShoppingMall
+- Spa
+- VRDeck
+- Cabin_deck
+- Group_size
+- HomePlanet
+- Consumption_High_End
+- Consumption_Basic
+- Consumption_Total
+- Age_group
+encoded:
+- MEstimate
+- Mixed
+MEstimate_features:
+- CryoSleep
+- Destination
+- RoomService
+- FoodCourt
+- Spa
+- Cabin_deck
+- HomePlanet
+- Consumption_High_End
+- Consumption_Basic
+- Consumption_Total
+- Age_group
+Mixed_features:
+- CryoSleep
+- Destination
+- CryoSleep_FalseVRDeck
+- Spa
+- Cabin_deck
+- HomePlanet
+- Consumption_High_End
+- Consumption_Basic
+- Consumption_Total

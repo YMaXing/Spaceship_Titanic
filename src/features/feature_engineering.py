@@ -19,6 +19,10 @@ def feature_engineering(config: feature_engineering_Config) -> None:
     df_train["Consumption_Basic"] = df_train["FoodCourt"] + df_train["ShoppingMall"]
     df_test["Consumption_Basic"] = df_test["FoodCourt"] + df_test["ShoppingMall"]
 
+    # Create "Consumption_Total" feature
+    df_train["Consumption_Total"] = df_train["Consumption_Basic"] + df_train["Consumption_High_End"]
+    df_test["Consumption_Total"] = df_test["Consumption_High_End"] + df_test["Consumption_Basic"]
+
     # Bin Age into age groups
     # Define the bins and labels
     bins = [0, 18, 40, 60, float("inf")]  # Using float('inf') to include all higher numbers
@@ -32,10 +36,10 @@ def feature_engineering(config: feature_engineering_Config) -> None:
 
     # Remove corresponding old features
     df_train = df_train.drop(
-        columns=["Age", "ID_num", "RoomService", "ShoppingMall", "Spa", "VRDeck", "FoodCourt", "Cabin_side"]
+        columns=["Age", "ID_num", "Cabin_side"]
     )
     df_test = df_test.drop(
-        columns=["Age", "ID_num", "RoomService", "ShoppingMall", "Spa", "VRDeck", "FoodCourt", "Cabin_side"]
+        columns=["Age", "ID_num", "Cabin_side"]
     )
 
     # Save engineered datasets

@@ -1,0 +1,16 @@
+encoder_name: ???
+cat_validation: Double
+label: Transported
+supported_encoders:
+- WOEEncoder
+- CatBoostEncoder
+- MEstimateEncoder
+- OneHotEncoder
+OneHotEncoder_cols:
+- CryoSleep
+WOEEncoder_cols:
+- Destination
+- Cabin_deck
+- HomePlanet
+CatBoostEncoder_cols: []
+MEstimateEncoder_cols: []

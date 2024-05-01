@@ -5,12 +5,13 @@ from omegaconf import MISSING
 
 @dataclass
 class outlier_Config:
-    local_data_dir = "data/EDA_export"
-    local_save_dir = "data/imputed"
-    expenses = ["RoomService", "FoodCourt", "ShoppingMall", "Spa", "VRDeck"]
-    label = "Transported"
-    max_iter = 5
-
+    local_data_dir = "data/imputed"
+    local_save_dir = "data/outlier_removed"
+    out_features = ["Age", "RoomService", "Spa", "ShoppingMall", "VRDeck", "FoodCourt"]
+    n_jobs = -1
+    n_estimators = 500
+    random_state = 42
+    threshold = 0.8
 
 def setup_config() -> None:
     cs = ConfigStore.instance()

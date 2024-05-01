@@ -52,9 +52,21 @@ version-data: up
 impute: up
 	$(DOCKER_COMPOSE_EXEC) python src/features/imputation/imputation.py
 
-## Engineer new features
-engineer: up
+## Remove outliers in the training data using isolation forest
+outlier: impute
+	$(DOCKER_COMPOSE_EXEC) python src/features/outlier_detection.py
+
+## Engineer new features and delete some old features
+engineer: outlier
 	$(DOCKER_COMPOSE_EXEC) python src/features/feature_engineering.py
+
+## Engineer new features 
+encode: engineer
+	$(DOCKER_COMPOSE_EXEC) python src/features/encoding/encoding.py encoder_name="WOEEncoder"
+
+## Feature selection
+select_feature: encode
+	$(DOCKER_COMPOSE_EXEC) python src/features/feature_selection.py
 
 ## Process the data
 process-data: impute
