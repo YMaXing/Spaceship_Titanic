@@ -88,7 +88,7 @@ class cv_training(BaseEstimator, TransformerMixin):
         ValueError: If the label column, metric list, or metric optimization direction list is not properly defined.
     """
 
-    def __init__(self, n_splits: int = 5, estimator=None, params: dict = {}, random_state: int = 42):
+    def __init__(self, n_splits: int = 10, estimator=None, params: dict = {}, random_state: int = 42):
         self.estimator = estimator
         self.params = params
         self.random_state = random_state
@@ -240,17 +240,22 @@ class cv_training(BaseEstimator, TransformerMixin):
 
 def get_feature_contributions(y_true, y_pred, shap_values):
     """Compute prediction contribution and error contribution for each feature."""
-
+    # Prediction contribution based on mean absolute SHAP values
     prediction_contribution = shap_values.abs().mean().rename("prediction_contribution")
 
+    # Compute absolute errors
     abs_error = (y_true - y_pred).abs()
-    y_pred_wo_feature = shap_values.apply(lambda feature: y_pred - feature)
-    abs_error_wo_feature = y_pred_wo_feature.apply(lambda feature: (y_true - feature).abs())
+
+    # Calculate predictions without each feature
+    y_pred_wo_feature = y_pred.values.reshape(-1, 1) - shap_values
+    abs_error_wo_feature = (y_true.values.reshape(-1, 1) - y_pred_wo_feature).abs()
+
+    # Calculate error reduction when the feature is removed
     error_contribution = (
-        abs_error_wo_feature.apply(lambda feature: abs_error - feature).mean().rename("error_contribution")
+        (abs_error.values.reshape(-1, 1) - abs_error_wo_feature).mean(axis=0).rename("error_contribution")
     )
 
-    return prediction_contribution, error_contribution
+    return pd.Series(prediction_contribution), pd.Series(error_contribution)
 
 
 class shap_tree_cv:
@@ -322,13 +327,33 @@ class shap_tree_cv:
             MAE = mean_absolute_error(y_val, y_pred)
             self.MAEs.append(MAE)
             prediction_contribution, error_contribution = get_feature_contributions(y_val, y_pred, shaps)
-            contribution = pd.concat([prediction_contribution, error_contribution], axis=1)
-            self.contributions.append(contribution)
+            contributions_df = pd.concat([prediction_contribution, error_contribution], axis=1)
+            # Create a DataFrame with 'fold' as an additional column
+            contributions_df["fold"] = i_fold  # Tag each row with the fold number
+            contributions_df.set_index("fold", append=True, inplace=True)  # Append fold to the existing index
 
-        return (
-            np.mean(self.MAEs),
-            pd.concat(self.contributions, keys=range(len(self.contributions))).groupby(level=1).mean(),
+            self.contributions.append(contributions_df)
+
+        # Concatenate all contributions with a MultiIndex containing both feature name and fold number
+        aggregated_contributions = pd.concat(self.contributions)
+
+        # Calculate mean and median across all folds for each feature
+        mean_contributions = aggregated_contributions.groupby(level=0).mean()  # Group by feature level
+        median_contributions = aggregated_contributions.groupby(level=0).median()  # Group by feature level
+
+        # Create final contributions DataFrame where we make the metric more robust by always picking the worse between the mean and the median across folds
+        final_contributions = pd.DataFrame(
+            {
+                "prediction_contribution": np.minimum(
+                    mean_contributions["prediction_contribution"], median_contributions["prediction_contribution"]
+                ),
+                "error_contribution": np.maximum(
+                    mean_contributions["error_contribution"], median_contributions["error_contribution"]
+                ),
+            }
         )
+
+        return np.max([np.mean(self.MAEs), np.median(self.MAEs)]), final_contributions
 
     def plot_contributions(self) -> None:
         """
@@ -344,10 +369,10 @@ class shap_tree_cv:
         for i_fold in range(0, self.trained_cv.n_splits):
             # Create the scatter plot using Plotly Express
             fig = px.scatter(
-                self.contributions[i_fold],
+                self.contributions[i_fold].droplevel("fold"),
                 x="prediction_contribution",
                 y="error_contribution",
-                text=self.contributions[i_fold].index,
+                text=self.contributions[i_fold].droplevel("fold").index,
                 title=f"Training fold {i_fold}",
                 labels={
                     "prediction_contribution": "Prediction Contribution",
@@ -476,7 +501,6 @@ class rfe_shap_cv:
             # Then, we initialize the shap_tree_cv and get the contributions of each feature in each cv fold
             shap_cv = shap_tree_cv(trained_cv=cv_trainer)
             MAE, shap_cv_contributions = shap_cv.get_MAE_and_contrib(df_curr)
-            print(shap_cv_contributions)
 
             # We drop the worst feature, i.e. the feature with the smallest prediction contribution or the biggest error contribution and then record the contributions in this iteration
             self.rfe_record.loc[iteration, "n_features"] = len(features_curr)
@@ -728,6 +752,7 @@ class simulated_annealing_cv:
     def anneal(
         self,
         df: pd.DataFrame,
+        vip_features: list[str] = [],
         label: str = None,
         cv_trainer_params: dict = {},
         fit_kwargs: dict = {},
@@ -741,6 +766,7 @@ class simulated_annealing_cv:
 
         Args:
             df (pd.DataFrame): The dataset containing features and a label.
+            vip_features: List of the name of vip features that are particularly helpful so that they will guarantee to appear in every annealing iteration.
             label (str): Column name of the label in the dataframe.
             cv_trainer_params (dict): Parameters to initialize the cross-validation trainer.
             fit_kwargs (dict): Keyword arguments for the fit method of the model.
@@ -769,10 +795,25 @@ class simulated_annealing_cv:
         X_train = df.copy().drop(columns=label)
         Y_train = df.copy()[label]
         full_set = set(np.arange(len(df.columns) - 1))
+        self.vip_features = set(df.columns.get_loc(vip_feature) for vip_feature in vip_features)
 
         # Generate initial random subset based on ~(self.sub_pct_init)% of columns
-        subset_curr = set(random.sample(list(full_set), round(self.sub_pct_init * len(full_set))))
-        subset_best = subset_curr
+        # Include VIP features in the initial subset
+        initial_num_features = round(self.sub_pct_init * len(full_set))
+        # Calculate the additional features needed to reach the initial percentage target
+        additional_features_needed = max(0, initial_num_features - len(self.vip_features))
+
+        # Sample additional features to include, converting the set difference to a list
+        if additional_features_needed > 0:
+            additional_features = random.sample(
+                list(full_set.difference(self.vip_features)), additional_features_needed
+            )
+        else:
+            additional_features = []
+
+        # Create the initial subset by combining VIP features with the additional randomly selected features
+        subset_curr = self.vip_features.union(set(additional_features))
+        subset_best = subset_curr.copy()
         X_curr = X_train.iloc[:, list(subset_curr)]
 
         print("%" * 150)
@@ -809,23 +850,25 @@ class simulated_annealing_cv:
                 break
 
             while True:
-                if len(subset_curr) == len(full_set):
-                    move = "Remove"
-                elif len(subset_curr) == self.min_n_feat_final:  # Not to go below (self.min_n_feat_final) features
-                    move = random.choice(["Add", "Replace"])
-                else:
+                # Generate a new subset based on the current state, ensuring VIP features are not removed
+                if len(subset_curr) == len(self.vip_features):
+                    move = "Add"  # Only add if the current set is exactly the VIP set
+                elif len(subset_curr) > len(self.vip_features):
                     move = random.choice(["Add", "Replace", "Remove"])
+                else:
+                    move = "Add"  # Safeguard, should not occur due to previous condition
 
                 pending_cols = full_set.difference(subset_curr)
                 subset_new = subset_curr.copy()
 
-                if move == "Add":
+                if move == "Add" and pending_cols:
                     subset_new.add(random.choice(list(pending_cols)))
-                elif move == "Replace":
-                    subset_new.remove(random.choice(list(subset_curr)))
+                elif move == "Replace" and pending_cols and (len(subset_new) > len(self.vip_features)):
+                    feature_to_replace = random.choice(list(subset_new.difference(self.vip_features)))
+                    subset_new.remove(feature_to_replace)
                     subset_new.add(random.choice(list(pending_cols)))
-                else:
-                    subset_new.remove(random.choice(list(subset_curr)))
+                elif move == "Remove" and (len(subset_new) > len(self.vip_features)):
+                    subset_new.remove(random.choice(list(subset_new.difference(self.vip_features))))
 
                 if subset_new in self.hash_values:
                     print("Subset already visited, trying to get a new subset of features for this iteration.")

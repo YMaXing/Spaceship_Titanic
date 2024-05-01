@@ -38,6 +38,8 @@ class Encoder(BaseEstimator, TransformerMixin):
             self.encoders_list.append(encoder)
 
         X = pd.concat(X_val_list, axis=0).sort_index()
+        self.features_after_encoder = X.columns.tolist()
+        print(self.features_after_encoder)
         return X
 
     def transform(self, X: pd.DataFrame) -> np.array:
@@ -56,3 +58,7 @@ class Encoder(BaseEstimator, TransformerMixin):
             fold_count += 1
 
         return pd.concat([X_encoded_sum, X.drop(columns=encoder.cat_cols)], axis=1)
+
+    def get_feature_names_out(self, input_features=None):
+        if input_features is not None:
+            return self.features_after_encoder
