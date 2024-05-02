@@ -96,6 +96,7 @@ class cv_training(BaseEstimator, TransformerMixin):
         self.n_splits = n_splits
         self.estimators = []
         self.features = []
+        self.conf_matrices = []  # Store confusion matrices for each fold
 
     def fit(
         self,
@@ -116,7 +117,7 @@ class cv_training(BaseEstimator, TransformerMixin):
             fit_kwargs (dict): Additional keyword arguments for the `fit` method of the estimator.
             predict_kwargs (dict): Additional keyword arguments for the `predict` method of the estimator.
             metric_list (list of str): List of metric names to evaluate.
-            metric_opt_dir_list (list of str): List specifying the direction ('min' or 'max') for each metric's optimization.
+            metric_opt_dir_list (list of str): List specifying the direction ('min' for minimization, 'max' for maximization or 'compr' for comprehensive information) for each metric's optimization.
             metric_kwargs (dict): Additional keyword arguments for each metric computation.
 
         Returns:
@@ -176,6 +177,8 @@ class cv_training(BaseEstimator, TransformerMixin):
             y_pred = estimator.predict(X_val, **predict_kwargs)
             for metric_name in metric_list:
                 metric = get_single_metric(metric_name)
+                if metric_name == "roc_auc" or metric_name == "average_precision" or metric_name == "precision_recall_curve":
+                    y_pred = estimator.predict_proba(X_val, **predict_kwargs)[:, 1]
                 result = metric(Y_val, y_pred, **self.metric_kwargs[metric_name])
                 self.metrics[metric_name].append(result)
             logging.info(f"Completed training for fold {n_fold+1}")
@@ -197,6 +200,10 @@ class cv_training(BaseEstimator, TransformerMixin):
                 final_score = np.min([mean_score, median_score])
             elif metric_opt_dir == "min":
                 final_score = np.max([mean_score, median_score])
+            elif metric_opt_dir == "compr":
+                final_score = np.stack(self.metrics[metric_name])
+                final_score = np.sum(final_score, axis=0)
+                plot_confusion_matrix(final_score, class_labels=["False", "True"])
             else:
                 raise ValueError(
                     "metric_opt_dir as the direction of the metric optimization can either be 'min' for minimize and 'max' for maximize"

@@ -24,7 +24,7 @@ x-app-template: &app-template
   volumes:
     - ./:/app/
     - mlflow-artifact-store:/mlflow-artifact-store
-    - ~/.config/gcloud/:/home/${USER_NAME:-kyuksel}/.config/gcloud
+    - ~/.config/gcloud/:/home/${USER_NAME:-yxing}/.config/gcloud
   ipc: host
   init: true
 

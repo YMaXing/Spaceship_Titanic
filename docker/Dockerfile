@@ -13,10 +13,21 @@ ENV \
   BUILD_POETRY_LOCK="${HOME}/poetry.lock.build"\
   SKLEARN_ALLOW_DEPRECATED_SKLEARN_PACKAGE_INSTALL=True
 
-RUN apt-get -qq update --fix-missing \
-    && apt-get -qq -y install vim gcc curl git build-essential libb64-dev software-properties-common \
+# Update and install necessary packages
+RUN apt-get update --no-install-recommends -qq \
+    && apt-get install -y --no-install-recommends \
+       vim \
+       gcc \
+       curl \
+       git \
+       build-essential \
+       libb64-dev \
+       software-properties-common \
+       iputils-ping \
+       net-tools \
+       postgresql-client \
     && rm -rf /var/lib/apt/lists/* \
-    && apt-get -qq -y clean
+    && apt-get clean
 
 RUN curl https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-426.0.0-linux-x86_64.tar.gz > /tmp/google-cloud-sdk.tar.gz
 RUN mkdir -p /usr/local/gcloud \
@@ -51,7 +62,7 @@ USER ${USER_NAME}
 
 RUN git config --global user.email "garrusxing@gmail.com"\
     && git config --global user.name "yxing"
-
+    
 RUN python3.11 -m nltk.downloader stopwords && python3.11 -m nltk.downloader punkt 
     
 COPY . /app/
