@@ -1,4 +1,3 @@
-from tkinter import TRUE, Y
 import pandas as pd
 import numpy as np
 import logging
@@ -20,13 +19,13 @@ from sklearn.metrics import (
     mean_absolute_error,
 )
 from sklearn.model_selection import KFold, StratifiedKFold
-from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.model_selection import train_test_split
 import optuna
 from optuna import Trial
 from optuna import create_study
 from optuna import pruners
-from pruners import SuccessiveHalvingPruner
+from optuna.pruners import SuccessiveHalvingPruner
 from optuna import samplers
 from optuna.samplers import TPESampler
 from optuna.visualization import plot_optimization_history
@@ -54,7 +53,10 @@ def get_cat_features(df: pd.DataFrame, label: str) -> list[str]:
     return cat_features
 
 
-def get_fit_cat_params(estimator_class, cat_col_list=[]) -> dict:
+def get_fit_cat_params(estimator_class: str, cat_col_list=[]) -> dict:
+    if cat_col_list is None:
+        cat_col_list = []  # Default to an empty list if no categories are provided
+
     estimator_classes = {
         "CatBoostClassifier": {"cat_features": cat_col_list},
         "CatBoostRegressor": {"cat_features": cat_col_list},
@@ -63,11 +65,8 @@ def get_fit_cat_params(estimator_class, cat_col_list=[]) -> dict:
         "HistGradientBoostingClassifier": {"categorical_features": cat_col_list},
         "HistGradientBoostingRegressor": {"categorical_features": cat_col_list},
     }
-    cat_key = estimator_classes.get(estimator_class)
-    if estimator_class:
-        return cat_key
-    else:
-        return {}
+    # Directly return the appropriate dictionary or an empty dictionary if the class is not found
+    return estimator_classes.get(estimator_class, {})
 
 
 def get_single_metric(metric_name: str):
@@ -97,7 +96,7 @@ def get_single_metric(metric_name: str):
         raise ValueError(f"Metric name '{metric_name}' is not supported.")
 
 
-class cv_training(BaseEstimator, TransformerMixin):
+class cv_training(BaseEstimator, ClassifierMixin):
     """
     This class performs cross-validated training for a given estimator on a provided dataset. It integrates
     scikit-learn's BaseEstimator and TransformerMixin to support pipelining and consistent interface with
@@ -212,11 +211,12 @@ class cv_training(BaseEstimator, TransformerMixin):
             self.estimators.append(estimator)
 
             # Make predictions and get scores for each metric
-            y_pred = estimator.predict(X_val, **predict_kwargs)
             for metric_name in metric_list:
                 metric = get_single_metric(metric_name)
-                if metric_name == "roc_auc" or metric_name == "average_precision" or metric_name == "precision_recall_curve":
+                if metric_name in ["roc_auc", "average_precision", "precision_recall_curve"]:
                     y_pred = estimator.predict_proba(X_val, **predict_kwargs)[:, 1]
+                else:
+                    y_pred = estimator.predict(X_val, **predict_kwargs)
                 result = metric(Y_val, y_pred, **self.metric_kwargs[metric_name])
                 self.metrics[metric_name].append(result)
             logging.info(f"Completed training for fold {n_fold+1}")
@@ -259,7 +259,7 @@ class cv_training(BaseEstimator, TransformerMixin):
 
         return self
 
-    def transform(self, df: pd.DataFrame):
+    def predict(self, df: pd.DataFrame) -> pd.Series:
         """
         Applies the trained model to predict the target variable on a new dataset.
 
@@ -276,11 +276,10 @@ class cv_training(BaseEstimator, TransformerMixin):
             logging.error("Please first train the model using fit before making predictions")
             raise ValueError("Please first train the model using fit before making predictions")
         predictions = self.estimator.predict(df, **self.predict_kwargs)
-        df[self.label] = predictions
         logging.info("Prediction completed for the test set")
         print("Prediction completed for the test set")
 
-        return df
+        return predictions
 
 
 def plot_confusion_matrix(cm, class_labels=None):
@@ -303,8 +302,7 @@ def plot_confusion_matrix(cm, class_labels=None):
     # Reverse the y-axis to put '0' at the top
     fig["layout"]["yaxis"]["autorange"] = "reversed"
 
-    # Show the plot
-    fig.show()
+    return fig
 
 
 class HPT_Optuna_CV:
@@ -417,7 +415,7 @@ class HPT_Optuna_CV:
                 min_estimators = 100
 
                 for num_estimator in range(min_estimators, n_estimators):
-                    model_prune.set_params(n_estimators=i)
+                    model_prune.set_params(n_estimators=num_estimator)
                     model_prune.fit(X_train, Y_train, **fit_kwargs, **cat_fit_kwargs)
                     y_pred = model_prune.predict(X_val, **predict_kwargs)
                     metric = get_single_metric(metric_name)
@@ -566,7 +564,7 @@ def log_int(x, base: int = 2):
 def generate_sample_numbers(y: pd.DataFrame, base: int, n_rungs: int) -> list[int]:
     """
     Generates a list of sample numbers based on the total number of samples in the DataFrame,
-    scaled logarithmically according to a specified base and number of rungs. This function is 
+    scaled logarithmically according to a specified base and number of rungs. This function is
     typically used to determine the sizes of samples for successive halving in hyperparameter tuning.
 
     Args:
@@ -590,6 +588,20 @@ def generate_sample_numbers(y: pd.DataFrame, base: int, n_rungs: int) -> list[in
     data_size = len(y)
     data_scale = log_int(data_size, base)
     min_scale = data_scale - n_rungs
-    min_samples = base**min_scale
 
     return [*map(lambda scale: base**scale, range(min_scale, data_scale + 1))]
+
+
+def convert_object_to_category(df):
+    """
+    Convert all object type columns in a DataFrame to category type.
+
+    Parameters:
+        df (pd.DataFrame): The DataFrame to convert.
+
+    Returns:
+        pd.DataFrame: A DataFrame with object type columns converted to category type.
+    """
+    for column in df.select_dtypes(include=['object']).columns:
+        df[column] = df[column].astype('category')
+    return df

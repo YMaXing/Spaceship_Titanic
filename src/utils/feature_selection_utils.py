@@ -16,7 +16,7 @@ from sklearn.metrics import (
 )
 
 from sklearn.model_selection import KFold, StratifiedKFold
-from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.base import BaseEstimator, ClassifierMixin
 import pandas as pd
 import numpy as np
 import logging
@@ -59,7 +59,7 @@ def get_single_metric(metric_name: str):
         raise ValueError(f"Metric name '{metric_name}' is not supported.")
 
 
-class cv_training(BaseEstimator, TransformerMixin):
+class cv_training(BaseEstimator, ClassifierMixin):
     """
     This class performs cross-validated training for a given estimator on a provided dataset. It integrates
     scikit-learn's BaseEstimator and TransformerMixin to support pipelining and consistent interface with
@@ -174,11 +174,12 @@ class cv_training(BaseEstimator, TransformerMixin):
             self.estimators.append(estimator)
 
             # Make predictions and get scores for each metric
-            y_pred = estimator.predict(X_val, **predict_kwargs)
             for metric_name in metric_list:
                 metric = get_single_metric(metric_name)
-                if metric_name == "roc_auc" or metric_name == "average_precision" or metric_name == "precision_recall_curve":
+                if metric_name in ["roc_auc", "average_precision", "precision_recall_curve"]:
                     y_pred = estimator.predict_proba(X_val, **predict_kwargs)[:, 1]
+                else:
+                    y_pred = estimator.predict(X_val, **predict_kwargs)
                 result = metric(Y_val, y_pred, **self.metric_kwargs[metric_name])
                 self.metrics[metric_name].append(result)
             logging.info(f"Completed training for fold {n_fold+1}")
@@ -221,7 +222,7 @@ class cv_training(BaseEstimator, TransformerMixin):
 
         return self
 
-    def transform(self, df: pd.DataFrame):
+    def predict(self, df: pd.DataFrame) -> pd.Series:
         """
         Applies the trained model to predict the target variable on a new dataset.
 
@@ -238,11 +239,10 @@ class cv_training(BaseEstimator, TransformerMixin):
             logging.error("Please first train the model using fit before making predictions")
             raise ValueError("Please first train the model using fit before making predictions")
         predictions = self.estimator.predict(df, **self.predict_kwargs)
-        df[self.label] = predictions
         logging.info("Prediction completed for the test set")
         print("Prediction completed for the test set")
 
-        return df
+        return predictions
 
 
 def get_feature_contributions(y_true, y_pred, shap_values):

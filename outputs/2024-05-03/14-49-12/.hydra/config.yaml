@@ -1,0 +1,26 @@
+local_data_dir: data/feature-selected
+local_save_dir: data/models
+label: Transported
+encodings:
+- NE
+- ME
+- Mixed
+base_params_dict:
+  CatBoost:
+    verbose: false
+    eval_metric: Accuracy
+  ExtraTrees:
+    n_jobs: -1
+    random_state: 42
+  Hist:
+    random_state: 42
+  XGBoost:
+    random_state: 42
+    enable_categorical: true
+    eval_metric: accuracy_score
+    n_jobs: -1
+  LGBM:
+    random_state: 42
+    objective: binary
+    n_jobs: -1
+directory_base: /model_artifacts/base_model
