@@ -1,6 +1,7 @@
 from hydra.core.config_store import ConfigStore
 from pydantic.dataclasses import dataclass
 from dataclasses import field
+from typing import Any, Dict
 
 from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.ensemble import HistGradientBoostingClassifier
@@ -8,12 +9,16 @@ from catboost import CatBoostClassifier
 import lightgbm as lgb
 import xgboost as xgb
 
+from optuna.pruners import SuccessiveHalvingPruner, HyperbandPruner, MedianPruner
+from optuna.samplers import TPESampler
+
 
 @dataclass
 class HPT_Config:
     local_data_dir: str = "data/feature-selected"
     local_save_dir: str = "data/models"
     label: str = "Transported"
+    random_state: int = 42
 
     # Use Type for specifying the type of the classifier
     models = [(xgb.XGBClassifier, "XGBoost"),
@@ -41,6 +46,26 @@ class HPT_Config:
     )
 
     directory_base = "model_artifacts/base_model"
+
+    # Hyperparameter tuning parameters
+    HPT_model_name: str = "DefaultModel"
+    HPT_encoding: str = "DefaultEncoding"
+    pruner = SuccessiveHalvingPruner
+    pruner_kwargs = {"reduction_factor": 2}
+    n_rungs = 4
+    sampler = TPESampler
+    sampler_kwargs = {}
+    fit_kwargs = {}
+    predict_kwargs = {}
+    metric_name = "accuracy"
+    metric_list = ["accuracy", "roc_auc", "f1", "confusion_matrix"]
+    metric_opt_dir_list = ["max", "max", "max", "compr"]
+    metric_kwargs = {}
+    artifact_directory = "model_artifacts/HPT"
+    n_trials = 500
+    if_callback = True
+    verbose_obj_def: bool = True
+    hyperparameters: Dict[str, Any] = field(default_factory=lambda: {})
 
 
 def setup_config() -> None:

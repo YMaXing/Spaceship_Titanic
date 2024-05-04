@@ -1,3 +1,59 @@
 defaults:
   - HPT_config_schema
   - _self_
+
+
+# CatBoost HPT config 
+HPT_model_name: "CatBoost"
+HPT_encoding: "Mixed"
+
+hyperparameters:
+    max_depth:
+        type: int
+        name: max_depth
+        low: 3
+        high: 12
+    learning_rate:
+        type: float
+        name: learning_rate
+        low: 0.001
+        high: 0.1
+    n_estimators:
+        type: int
+        name: n_estimators
+        low: 200
+        high: 1500
+    max_bin:
+        type: int
+        name: max_bin
+        low: 50
+        high: 300
+    min_data_in_leaf:
+        type: int
+        name: min_data_in_leaf
+        low: 1
+        high: 10
+    l2_leaf_reg:
+        type: float
+        name: l2_leaf_reg
+        low: 0.01
+        high: 1.0
+        log: true
+    bootstrap_type:
+        type: categorical
+        name: bootstrap_type
+        choices:
+        - Bernoulli
+        - Bayesian
+    grow_policy:
+        type: categorical
+        name: grow_policy
+        choices:
+        - SymmetricTree
+        - Depthwise
+        - Lossguide
+    random_strength:
+        type: float
+        name: random_strength
+        low: 0.1
+        high: 1.0 
