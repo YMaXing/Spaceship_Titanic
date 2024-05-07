@@ -1,6 +1,6 @@
 outs:
-- md5: 558b73695a733f646991a15e74476e53.dir
-  size: 126704249
-  nfiles: 31
+- md5: 7065999ad158f43f539dd533f09f44ff.dir
+  size: 482108262
+  nfiles: 117
   hash: md5
   path: model_artifacts

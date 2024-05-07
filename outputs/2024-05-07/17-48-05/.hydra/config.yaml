@@ -1,0 +1,21 @@
+label:
+- Transported
+unencoded_features:
+- - Destination
+  - Group_size
+  - HomePlanet
+  - Age_group
+  - Cabin_deck
+encoded:
+- Mixed
+Mixed_features:
+- Destination
+- Cabin_deck
+- HomePlanet
+- Age_group
+- CryoSleep_False
+- Spa
+- VRDeck
+- Group_size
+- Consumption_High_End
+- Consumption_Basic

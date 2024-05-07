@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import logging
 import plotly.figure_factory as ff
+from scipy.stats import mode
 from sklearn.metrics import (
     accuracy_score,
     roc_auc_score,
@@ -269,7 +270,7 @@ class cv_training(BaseEstimator, ClassifierMixin):
 
         return self
 
-    def predict(self, df: pd.DataFrame) -> pd.Series:
+    def predict(self, df: pd.DataFrame, majority_threshold: int) -> pd.Series:
         """
         Applies the trained model to predict the target variable on a new dataset.
 
@@ -285,11 +286,34 @@ class cv_training(BaseEstimator, ClassifierMixin):
         if not self.estimators:
             logging.error("Please first train the model using fit before making predictions")
             raise ValueError("Please first train the model using fit before making predictions")
-        predictions = self.estimator.predict(df, **self.predict_kwargs)
+
+        # Hard voting
+        # Collect predictions from each fold's estimator
+        predictions = [estimator.predict(df) for estimator in self.estimators]
+        # Use mode (majority voting) for final prediction
+        if majority_threshold is None:
+            majority_threshold = len(self.estimators) // 2 + 1  # Simple majority
+
+        # Compute the majority vote based on a custom threshold
+        hard_vote_predictions = np.sum(predictions, axis=0) >= majority_threshold
+
+        # Soft voting
+        # Check if each estimator has a 'predict_proba' method
+        if not all(hasattr(estimator, 'predict_proba') for estimator in self.estimators):
+            raise AttributeError("All estimators must support the 'predict_proba' method for soft voting.")
+        # Collect probability predictions from each fold's estimator
+        prob_predictions = [estimator.predict_proba(df) for estimator in self.estimators]
+        # Average the probability predictions
+        mean_prob_predictions = np.mean(prob_predictions, axis=0)
+
+        # Convert probabilities to final class predictions
+        # This step is typical for binary classifications, adjust as necessary for multi-class
+        soft_vote_predictions = np.argmax(mean_prob_predictions, axis=1)
+
         logging.info("Prediction completed for the test set")
         print("Prediction completed for the test set")
 
-        return predictions
+        return hard_vote_predictions.astype("int"), soft_vote_predictions
 
 
 def plot_confusion_matrix(cm, class_labels=None):
@@ -328,16 +352,17 @@ class HPT_Optuna_CV:
         random_state (int): Controls the randomness of the trial sampling and other stochastic elements, defaults to 42.
         prune (bool): Flag to determine whether to use pruning, initialized as True.
         direction (str or None): The direction of optimization ('minimize' or 'maximize'), not set initially.
+        cat_feat_fit(bool): Whether there is a parameter for processing categorical data in the fit method.
 
     """
 
-    def __init__(self, cfg: HPT_Config, random_state: int = 42, prune: bool = False, verbose: int = 0):
+    def __init__(self, cfg: HPT_Config, random_state: int = 42, prune: bool = False, cat_feat_fit: bool = True):
         """Initializes the hyperparameter tuning class with the specified random state."""
         self.random_state = random_state
         self.cfg = cfg
         self.prune = prune
         self.direction = None
-        self.verbose = verbose
+        self.cat_feat_fit = cat_feat_fit
 
     def instantiate_cv_model(self, trial: Trial, model=None, params: dict = {}):
         """
@@ -404,9 +429,6 @@ class HPT_Optuna_CV:
             k: getattr(trial, f'suggest_{v["type"]}')(name=v["name"], **{key: val for key, val in v.items() if key not in ['type', 'name']})
             for k, v in self.cfg.hyperparameters.items()
         }
-        if self.cfg.verbose_obj_def:
-            params["verbose"] = self.verbose
-        logging.info(f"Hyperparameters for the trial are {params}")
         # Initialize features and label
         X = df.drop(columns=label)
         Y = df[label]
@@ -463,11 +485,15 @@ class HPT_Optuna_CV:
                     if trial.should_prune():
                         raise optuna.TrialPruned()
 
+        if self.cat_feat_fit:
+            fit_kwargs = {**fit_kwargs, **cat_fit_kwargs}
+        else:
+            params = {**params, **cat_fit_kwargs}
         model_cv = self.instantiate_cv_model(trial, model=model, params=params)
         model_cv.fit(
             df,
             label,
-            fit_kwargs={**fit_kwargs, **cat_fit_kwargs},
+            fit_kwargs=fit_kwargs,
             predict_kwargs=predict_kwargs,
             metric_list=metric_list,
             metric_opt_dir_list=metric_opt_dir_list,
@@ -574,6 +600,7 @@ class HPT_Optuna_CV:
                     metric_obj=metric_name,
                     random_state=self.random_state,
                     directory=artifact_directory,
+                    cat_feat_fit=self.cat_feat_fit
                 )
         else:
             callback = None
@@ -673,6 +700,7 @@ def log_best_trial(
     metric_kwargs: dict = {},
     metric_obj: str = None,
     random_state: int = None,
+    cat_feat_fit: bool = False,
     directory=None
 ) -> None:
     """Logs the best trial from an Optuna study into MLflow, including retraining the model, logging metrics, and saving a confusion matrix as an HTML file.
@@ -699,7 +727,11 @@ def log_best_trial(
     Raises:
         IOError: If the function fails to read or write the serial number file.
     """
-    if trial.number == study.best_trial.number:
+    if trial == study.best_trial:
+        logging.info(f"Best trial so far: {study.best_trial}")
+        if not directory.exists():
+            directory.mkdir(parents=True, exist_ok=True)
+        logging.info(f"Successfully created directory {directory}")
         # Get the serial number for the model
         try:
             serial_number = get_serial_number(directory / f"serial_number_{model_name}_{encoding}.txt")
@@ -709,14 +741,22 @@ def log_best_trial(
 
         with mlflow.start_run(run_name=f"{model_name}_{encoding}_best_trial_{serial_number}"):
             mlflow.log_params(trial.params)
-            print(f"the parameters in trial are {trial.params}")
             # Assuming the model can be retrained here or retrieved somehow
-            model_cv = cv_training(estimator=model, params=trial.params, random_state=random_state)
+            cat_features = get_cat_features(df, label)
+            cat_fit_kwargs = get_fit_cat_params(model.__name__, cat_col_list=cat_features)
+            if cat_feat_fit:
+                fit_kwargs = {**fit_kwargs, **cat_fit_kwargs}
+                params = trial.params
+            else:
+                params = {**trial.params, **cat_fit_kwargs}
+
+            model_cv = cv_training(estimator=model, params=params, random_state=random_state)
             cat_fit_kwargs = get_fit_cat_params(model.__name__, cat_col_list=get_cat_features(df, label))
+
             model_cv.fit(
                 df,
                 label,
-                fit_kwargs={"verbose": False, **fit_kwargs, **cat_fit_kwargs},
+                fit_kwargs=fit_kwargs,
                 predict_kwargs=predict_kwargs,
                 metric_list=metric_list,
                 metric_opt_dir_list=metric_opt_dir_list,
@@ -742,6 +782,6 @@ def get_model_class(model_name: str):
         "XGBoost": xgb.XGBClassifier,
         "LGBM": lgb.LGBMClassifier,
         "ExtraTrees": ExtraTreesClassifier,
-        "Hist": HistGradientBoostingClassifier,
+        "HistGradientBoosting": HistGradientBoostingClassifier,
     }
     return models.get(model_name)

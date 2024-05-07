@@ -8,7 +8,7 @@ from omegaconf import MISSING
 @dataclass
 class encoding_Config:
     local_data_dir = "data/engineered"
-    local_save_dir = "data/encoded"
+    local_save_dir = "data/encoded/double"
     encoder_name: str = "WOEEncoder"
     cat_validation: str = "Double"
     label: str = "Transported"

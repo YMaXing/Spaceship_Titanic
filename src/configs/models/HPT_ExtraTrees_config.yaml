@@ -1,0 +1,56 @@
+defaults:
+  - HPT_config_schema
+  - _self_
+
+HPT_model_name: "ExtraTrees"
+HPT_encoding: "Mixed"
+
+hyperparameteres:
+  criterion:
+    type: categorical
+    name: criterion
+    choices: ['gini', 'entropy', 'logloss']
+  n_estimators:
+    type: int
+    name: n_estimators
+    low: 200
+    high: 1000
+  max_depth:
+    type: int
+    name: max_depth
+    low: 3
+    high: 12
+  min_samples_split:
+    type: int
+    name: min_samples_split
+    low: 2
+    high: 20
+  min_samples_leaf:
+    type: int
+    name: min_samples_leaf
+    low: 1
+    high: 10
+  min_weight_fraction_leaf:
+    type: float
+    name: min_weight_fraction_leaf
+    low: 0.0
+    high: 0.5
+  max_features:
+    type: categorical
+    name: max_features
+    choices: [None, 'sqrt', 'log2']
+  n_jobs:
+    type: int
+    name: n_jobs
+    low: -1
+    high: -1
+  ccp_alpha:
+    type: float
+    name: ccp_alpha
+    low: 0.0
+    high: 0.3
+  min_impurity_decrease:
+    type: float
+    name: min_impurity_decrease
+    low: 0.0
+    high: 0.1

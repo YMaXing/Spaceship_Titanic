@@ -76,7 +76,8 @@ class MultipleEncoder(BaseEstimator, TransformerMixin):
         "HelmertEncoder", "BackwardDifferenceEncoder", "JamesSteinEncoder", "OrdinalEncoder""CatBoostEncoder"
         """
 
-        self.cat_cols = None
+        self.cat_cols = []
+        self.num_cols = []
         self.encoder_name = encoder_name
         self.encoder = None
 
@@ -84,6 +85,7 @@ class MultipleEncoder(BaseEstimator, TransformerMixin):
         self.cat_cols = [
             col for col in X.columns if not pd.api.types.is_numeric_dtype(X[col]) or X[col].dtype == "bool"
         ]
+        self.num_cols = [col for col in X.columns if pd.api.types.is_numeric_dtype(X[col]) and X[col].dtype != "bool"]
         encoder = get_single_encoder(encoder_name=self.encoder_name, cat_cols=self.cat_cols)
         encoder.fit(X, y)
         self.encoder = encoder
@@ -133,6 +135,6 @@ def read_data(local_data_dir: str, label: str) -> pd.DataFrame:
     return X, Y, df_test
 
 
-def save_data(train: pd.DataFrame, test: pd.DataFrame, local_save_dir: str) -> None:
-    train.to_csv(local_save_dir + "/train.csv", index=False)
-    test.to_csv(local_save_dir + "/test.csv", index=False)
+def save_data(train: pd.DataFrame, test: pd.DataFrame, local_save_dir) -> None:
+    train.to_csv(local_save_dir / "train.csv", index=False)
+    test.to_csv(local_save_dir / "test.csv", index=False)

@@ -14,7 +14,7 @@ def get_experiment_ID(experiment_name: str) -> None:
     client = MlflowClient()
 
     # Retrieve the existing experiment by name
-    experiment = client.get_experiment_by_name("Untuned_Models")
+    experiment = client.get_experiment_by_name(experiment_name)
 
     if experiment:
         experiment_id = experiment.experiment_id

@@ -1,0 +1,46 @@
+defaults:
+  - HPT_config_schema
+  - _self_
+
+HPT_model_name: "HistGradientBoosting"
+HPT_encoding: "NE"
+cat_feat_fit: False
+
+hyperparameters:
+  max_iter:
+    type: int
+    name: max_iter
+    low: 200
+    high: 2000
+  learning_rate:
+    type: float
+    name: learning_rate
+    low: 0.01
+    high: 0.1
+  max_depth:
+    type: int
+    name: max_depth
+    low: 3
+    high: 12
+  min_samples_leaf:
+    type: int
+    name: min_samples_leaf
+    low: 1
+    high: 10
+  l2_regularization:
+    type: float
+    name: l2_regularization
+    low: 0.0
+    high: 10
+  max_features:
+    type: float
+    name: max_features
+    low: 0.3
+    high: 1.0
+  max_bins:
+    type: int
+    name: max_bins
+    low: 255
+    high: 255
+
+  

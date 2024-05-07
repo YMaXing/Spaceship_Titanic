@@ -7,6 +7,7 @@ import hydra
 from hydra.types import TaskFunction
 from omegaconf import DictConfig, OmegaConf
 
+from src.config_schemas import config_schema
 from src.config_schemas.data import get_raw_data_config_schema
 from src.config_schemas.features import imputation_config_schema, encoding_config_schema, outlier_config_schema, feature_engineering_config_schema, feature_selection_config_schema
 from src.config_schemas.models import HPT_config_schema
@@ -35,6 +36,7 @@ def setup_config() -> None:
     feature_engineering_config_schema.setup_config()
     feature_selection_config_schema.setup_config()
     HPT_config_schema.setup_config()
+    config_schema.setup_config()
 
 
 def setup_logger() -> None:

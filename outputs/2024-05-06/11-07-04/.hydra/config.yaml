@@ -1,0 +1,65 @@
+local_data_dir: data/feature-selected/single
+local_save_dir: data/models
+label: Transported
+random_state: 42
+encodings:
+- NE
+- Mixed
+base_params_dict:
+  CatBoost:
+    verbose: false
+    eval_metric: Accuracy
+  ExtraTrees:
+    n_jobs: -1
+    random_state: 42
+  Hist:
+    random_state: 42
+  XGBoost:
+    random_state: 42
+    enable_categorical: true
+    eval_metric: error
+    n_jobs: -1
+  LGBM:
+    random_state: 42
+    objective: binary
+    n_jobs: -1
+HPT_model_name: HistGradientBoosting
+HPT_encoding: NE
+cat_feat_fit: false
+n_jobs: -1
+hyperparameters:
+  max_iter:
+    type: int
+    name: max_iter
+    low: 200
+    high: 2000
+  learning_rate:
+    type: float
+    name: learning_rate
+    low: 0.01
+    high: 0.1
+  max_depth:
+    type: int
+    name: max_depth
+    low: 3
+    high: 12
+  min_samples_leaf:
+    type: int
+    name: min_samples_leaf
+    low: 1
+    high: 10
+  l2_regularization:
+    type: float
+    name: l2_regularization
+    low: 0.0
+    high: 10
+  max_features:
+    type: float
+    name: max_features
+    low: 0.3
+    high: 1.0
+  max_bins:
+    type: int
+    name: max_bins
+    low: 255
+    high: 255

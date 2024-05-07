@@ -8,6 +8,7 @@ import logging
 from src.config_schemas.models.HPT_config_schema import HPT_Config
 from src.utils.HPT_utils import get_cat_features, plot_confusion_matrix, get_fit_cat_params, convert_object_to_category, get_model_class
 from src.utils.HPT_utils import HPT_Optuna_CV
+from src.utils.MLflow_utils import list_all_experiments, get_experiment_ID
 
 import mlflow
 import mlflow.sklearn
@@ -17,19 +18,17 @@ from optuna import pruners, samplers
 from optuna.visualization import plot_optimization_history, plot_param_importances, plot_contour, plot_intermediate_values, plot_parallel_coordinate, plot_slice, plot_edf
 
 
-@get_config(config_path="../configs/models", config_name="HPT_config")
+@get_config(config_path="../configs/models", config_name="HPT_baseline_config")
 def Baseline_models(config: HPT_Config) -> None:
-    df_train_NE, _ = read_data(config.local_data_dir + "/unencoded")
-    df_train_ME, _ = read_data(config.local_data_dir + "/MEstimate")
+    df_train_NE, _ = read_data(config.local_data_dir + "/NE")
     df_train_Mixed, _ = read_data(config.local_data_dir + "/Mixed")
 
     df_train_NE = convert_object_to_category(df_train_NE)
-    df_train_ME = convert_object_to_category(df_train_ME)
     df_train_Mixed = convert_object_to_category(df_train_Mixed)
 
-    training_sets = {"NE": df_train_NE, "ME": df_train_ME, "Mixed": df_train_Mixed}
+    training_sets = {"NE": df_train_NE, "Mixed": df_train_Mixed}
 
-    mlflow.set_experiment("Baseline_models")
+    mlflow.set_experiment("baseline_models")
     for model, model_name in config.models:
         for encoding in config.encodings:
             if model_name == "ExtraTrees" and encoding == "NE":
@@ -69,7 +68,7 @@ def Baseline_models(config: HPT_Config) -> None:
                 logging.info(f"Model saved as {model_name}_{encoding}")
 
 
-@get_config(config_path="../configs/models", config_name="HPT_config")
+@get_config(config_path="../configs/models", config_name="HPT_CatBoost_config")
 def Hyperparameters_tuning(config: HPT_Config) -> None:
     """
     Performs hyperparameter tuning for a specified machine learning model using Optuna, with
@@ -116,7 +115,8 @@ def Hyperparameters_tuning(config: HPT_Config) -> None:
     logging.info("Data read successfully")
 
     logging.info("Setting up the hyperparameter tuning...")
-    HPT = HPT_Optuna_CV(cfg=config)
+    HPT = HPT_Optuna_CV(cfg=config, cat_feat_fit=config.cat_feat_fit)
+    artifact_path = Path(config.artifact_directory) / f"{config.HPT_model_name}_{config.HPT_encoding}"
     mlflow.set_experiment(f"{config.HPT_model_name}_{config.HPT_encoding}")
     study = HPT.launch_study(
         study_name=f"{config.HPT_model_name}_{config.HPT_encoding}",
@@ -137,12 +137,11 @@ def Hyperparameters_tuning(config: HPT_Config) -> None:
         df=df_train,
         label=config.label,
         n_trials=config.n_trials,
-        artifact_directory=config.artifact_directory,
+        artifact_directory=artifact_path,
         if_callback=config.if_callback,
     )
     logging.info("Hyperparameter tuning completed successfully")
 
-    artifact_path = Path(config.artifact_directory) / f"{config.HPT_model_name}_{config.HPT_encoding}"
     logging.info("Start visualization...")
     plot_optimization_history(study).write_html(artifact_path / "optimization_history.html")
     mlflow.log_artifact(artifact_path / "optimization_history.html")

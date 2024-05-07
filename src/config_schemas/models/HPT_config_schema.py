@@ -15,8 +15,7 @@ from optuna.samplers import TPESampler
 
 @dataclass
 class HPT_Config:
-    local_data_dir: str = "data/feature-selected"
-    local_save_dir: str = "data/models"
+    local_data_dir: str = "data/feature-selected/double"
     label: str = "Transported"
     random_state: int = 42
 
@@ -27,7 +26,7 @@ class HPT_Config:
               (HistGradientBoostingClassifier, "Hist"),
               (lgb.LGBMClassifier, "LGBM")]
     # Encoding types: "NE" for No Encoding, "ME" for M-Estimate Encoding, "Mixed" for Mixed One-Hot and CatBoost Encoding
-    encodings: list[str] = field(default_factory=lambda: ["NE", "ME", "Mixed"])
+    encodings: list[str] = field(default_factory=lambda: ["NE", "Mixed"])
 
     # Base model parameters
     base_params_dict: dict = field(
@@ -46,7 +45,6 @@ class HPT_Config:
     )
 
     directory_base = "model_artifacts/base_model"
-
     # Hyperparameter tuning parameters
     HPT_model_name: str = "DefaultModel"
     HPT_encoding: str = "DefaultEncoding"
@@ -55,7 +53,7 @@ class HPT_Config:
     n_rungs = 4
     sampler = TPESampler
     sampler_kwargs = {}
-    fit_kwargs = {}
+    fit_kwargs = {"verbose": False}
     predict_kwargs = {}
     metric_name = "accuracy"
     metric_list = ["accuracy", "roc_auc", "f1", "confusion_matrix"]
@@ -64,7 +62,7 @@ class HPT_Config:
     artifact_directory = "model_artifacts/HPT"
     n_trials = 500
     if_callback = True
-    verbose_obj_def: bool = True
+    cat_feat_fit: bool = True
     hyperparameters: Dict[str, Any] = field(default_factory=lambda: {})
 
 

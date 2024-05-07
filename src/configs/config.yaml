@@ -9,3 +9,10 @@ hydra:
   output_subdir: null
   run:
     dir: .
+
+local_test_data_dir: "data/feature-selected/single"
+final_data_folder: "data/final/single"
+final_model_name: "CatBoost"
+final_encoding: "Mixed"
+final_model_run_id: 'runs:/629b9525eb584921883700ff66695caf/CatBoost_Mixed_best_trial_18'
+

@@ -25,6 +25,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 from tqdm import tqdm
 import random
+import plotly.figure_factory as ff
 
 
 def get_cat_features(df: pd.DataFrame, label: str) -> list[str]:
@@ -222,7 +223,7 @@ class cv_training(BaseEstimator, ClassifierMixin):
 
         return self
 
-    def predict(self, df: pd.DataFrame) -> pd.Series:
+    def predict(self, df: pd.DataFrame, majority_threshold: int) -> pd.Series:
         """
         Applies the trained model to predict the target variable on a new dataset.
 
@@ -238,11 +239,57 @@ class cv_training(BaseEstimator, ClassifierMixin):
         if not self.estimators:
             logging.error("Please first train the model using fit before making predictions")
             raise ValueError("Please first train the model using fit before making predictions")
-        predictions = self.estimator.predict(df, **self.predict_kwargs)
+
+        # Hard voting
+        # Collect predictions from each fold's estimator
+        predictions = [estimator.predict(df) for estimator in self.estimators]
+        # Use mode (majority voting) for final prediction
+        if majority_threshold is None:
+            majority_threshold = len(self.estimators) // 2 + 1  # Simple majority
+
+        # Compute the majority vote based on a custom threshold
+        hard_vote_predictions = np.sum(predictions, axis=0) >= majority_threshold
+
+        # Soft voting
+        # Check if each estimator has a 'predict_proba' method
+        if not all(hasattr(estimator, "predict_proba") for estimator in self.estimators):
+            raise AttributeError("All estimators must support the 'predict_proba' method for soft voting.")
+        # Collect probability predictions from each fold's estimator
+        prob_predictions = [estimator.predict_proba(df) for estimator in self.estimators]
+        # Average the probability predictions
+        mean_prob_predictions = np.mean(prob_predictions, axis=0)
+
+        # Convert probabilities to final class predictions
+        # This step is typical for binary classifications, adjust as necessary for multi-class
+        soft_vote_predictions = np.argmax(mean_prob_predictions, axis=1)
+
         logging.info("Prediction completed for the test set")
         print("Prediction completed for the test set")
 
-        return predictions
+        return hard_vote_predictions.astype("int"), soft_vote_predictions
+
+
+def plot_confusion_matrix(cm, class_labels=None):
+    # Default labels to 0 and 1 if none are provided
+    if class_labels is None:
+        class_labels = ["0", "1"]
+
+    # Define the confusion matrix data and annotations
+    z = cm
+    x = class_labels
+    y = class_labels
+    z_text = [[str(y) for y in x] for x in z]
+
+    # Create the confusion matrix as a heatmap
+    fig = ff.create_annotated_heatmap(z, x=x, y=y, annotation_text=z_text, colorscale="Blues")
+
+    # Add title and axis labels
+    fig.update_layout(title="Confusion Matrix", xaxis=dict(title="Predicted value"), yaxis=dict(title="Actual value"))
+
+    # Reverse the y-axis to put '0' at the top
+    fig["layout"]["yaxis"]["autorange"] = "reversed"
+
+    return fig
 
 
 def get_feature_contributions(y_true, y_pred, shap_values):

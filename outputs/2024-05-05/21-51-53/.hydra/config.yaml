@@ -1,0 +1,18 @@
+encoder_name: WOEEncoder
+cat_validation: Single
+label: Transported
+supported_encoders:
+- WOEEncoder
+- CatBoostEncoder
+- MEstimateEncoder
+- OneHotEncoder
+OneHotEncoder_cols:
+- CryoSleep
+WOEEncoder_cols: []
+CatBoostEncoder_cols:
+- Destination
+- Cabin_deck
+- HomePlanet
+- Age_group
+- VIP
+MEstimateEncoder_cols: []

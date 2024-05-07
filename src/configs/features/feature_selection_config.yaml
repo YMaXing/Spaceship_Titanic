@@ -1,3 +1,5 @@
 defaults:
   - feature_selection_config_schema
   - _self_
+
+Mixed_features: ['Destination','Cabin_deck', 'HomePlanet', 'Age_group','CryoSleep_False','Spa', 'VRDeck', 'Group_size', 'Consumption_High_End', 'Consumption_Basic']

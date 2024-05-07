@@ -1,0 +1,76 @@
+local_data_dir: data/feature-selected
+local_save_dir: data/models
+label: Transported
+random_state: 42
+encodings:
+- NE
+- ME
+- Mixed
+base_params_dict:
+  CatBoost:
+    verbose: false
+    eval_metric: Accuracy
+  ExtraTrees:
+    n_jobs: -1
+    random_state: 42
+  Hist:
+    random_state: 42
+  XGBoost:
+    random_state: 42
+    enable_categorical: true
+    eval_metric: error
+    n_jobs: -1
+  LGBM:
+    random_state: 42
+    objective: binary
+    n_jobs: -1
+HPT_model_name: LGBM
+HPT_encoding: Mixed
+verbose_obj_def: true
+n_jobs: -1
+hyperparameters:
+  reg_alpha:
+    type: float
+    min: 0.1
+    max: 10.0
+  reg_lambda:
+    type: float
+    min: 0.1
+    max: 10.0
+  num_leaves:
+    type: int
+    min: 2
+    max: 512
+  min_child_samples:
+    type: int
+    min: 5
+    max: 100
+  max_depth:
+    type: int
+    min: 3
+    max: 12
+  learning_rate:
+    type: float
+    min: 0.001
+    max: 1
+  colsample_bytree:
+    type: float
+    min: 0.1
+    max: 1
+  n_estimators:
+    type: int
+    min: 100
+    max: 1000
+  n_jobs:
+    type: int
+    min: -1
+    max: -1
+  boosting_type:
+    type: categorical
+    choices:
+    - gbdt
+    - dart
+  metric:
+    type: categorical
+    choices:
+    - mae

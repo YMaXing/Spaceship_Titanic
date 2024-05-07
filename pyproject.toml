@@ -39,7 +39,7 @@ symspellpy = "~=6.7.7"
 
 # ML models
 xgboost = "2.0.3"
-catboost = "~=1.2.3"
+catboost = {extras = ["gpu"], version = "^1.2.5"}
 lightgbm = "~=4.3.0"
 
 # Automized EDA
@@ -84,13 +84,6 @@ jupyterlab-spellchecker = "~=0.8.4"
 jupyterlab-code-formatter = "~=2.2.1"    
 jupyterlab-git = "~=0.50.0"
 JupyterLab-TensorBoard-Pro = "~=4.0.0"
-lckr-jupyterlab-variableinspector = "~=3.2.1"
-jupyterlab-sql = "~=0.3.3"
-nbdime = "~=4.0.1"
-jupyter_bokeh = "~=4.0.1"
-jupyter-lsp = "~=2.2.5"
-qgrid = "~=1.3.1"
-
 # NLP
 transformers = {version = "~=4.39.3", extras=["tensorflow"]}
 tokenizers = "~=0.15.2"
@@ -98,6 +91,7 @@ psycopg2-binary = "~=2.9"
 nltk = "~=3.8.1"
 category-encoders = "^2.6.3"
 pyod = "^1.1.3"
+pygwalker = "^0.4.8.3"
 
 
 [tool.poetry.group.dev.dependencies]

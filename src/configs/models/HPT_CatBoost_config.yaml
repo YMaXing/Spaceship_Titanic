@@ -5,14 +5,14 @@ defaults:
 
 # CatBoost HPT config 
 HPT_model_name: "CatBoost"
-HPT_encoding: "Mixed"
+HPT_encoding: "NE"
 
 hyperparameters:
     max_depth:
         type: int
         name: max_depth
         low: 3
-        high: 12
+        high: 8
     learning_rate:
         type: float
         name: learning_rate
@@ -22,12 +22,12 @@ hyperparameters:
         type: int
         name: n_estimators
         low: 200
-        high: 1500
+        high: 800
     max_bin:
         type: int
         name: max_bin
         low: 50
-        high: 300
+        high: 200
     min_data_in_leaf:
         type: int
         name: min_data_in_leaf
@@ -36,7 +36,7 @@ hyperparameters:
     l2_leaf_reg:
         type: float
         name: l2_leaf_reg
-        low: 0.01
+        low: 0.25
         high: 1.0
         log: true
     bootstrap_type:
@@ -57,3 +57,13 @@ hyperparameters:
         name: random_strength
         low: 0.1
         high: 1.0 
+    task_type:
+        type: categorical
+        name: task_type
+        choices:
+        - CPU
+    verbose:
+        type: categorical
+        name: verbose
+        choices:
+        - False

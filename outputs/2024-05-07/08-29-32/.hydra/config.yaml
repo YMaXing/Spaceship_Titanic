@@ -1,0 +1,88 @@
+local_data_dir: data/feature-selected/single
+local_save_dir: data/models
+label: Transported
+random_state: 42
+encodings:
+- NE
+- Mixed
+base_params_dict:
+  CatBoost:
+    verbose: false
+    eval_metric: Accuracy
+  ExtraTrees:
+    n_jobs: -1
+    random_state: 42
+  Hist:
+    random_state: 42
+  XGBoost:
+    random_state: 42
+    enable_categorical: true
+    eval_metric: error
+    n_jobs: -1
+  LGBM:
+    random_state: 42
+    objective: binary
+    n_jobs: -1
+HPT_model_name: CatBoost
+HPT_encoding: Mixed
+cat_feat_fit: true
+hyperparameters:
+  max_depth:
+    type: int
+    name: max_depth
+    low: 3
+    high: 8
+  learning_rate:
+    type: float
+    name: learning_rate
+    low: 0.001
+    high: 0.1
+  n_estimators:
+    type: int
+    name: n_estimators
+    low: 200
+    high: 800
+  max_bin:
+    type: int
+    name: max_bin
+    low: 50
+    high: 200
+  min_data_in_leaf:
+    type: int
+    name: min_data_in_leaf
+    low: 1
+    high: 10
+  l2_leaf_reg:
+    type: float
+    name: l2_leaf_reg
+    low: 0.25
+    high: 1.0
+    log: true
+  bootstrap_type:
+    type: categorical
+    name: bootstrap_type
+    choices:
+    - Bernoulli
+    - Bayesian
+  grow_policy:
+    type: categorical
+    name: grow_policy
+    choices:
+    - SymmetricTree
+    - Depthwise
+    - Lossguide
+  random_strength:
+    type: float
+    name: random_strength
+    low: 0.1
+    high: 1.0
+  task_type:
+    type: categorical
+    name: task_type
+    choices:
+    - CPU
+  verbose:
+    type: categorical
+    name: verbose
+    choices:
+    - false
